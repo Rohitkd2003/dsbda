@@ -1,0 +1,580 @@
+DAA - 1
+
+def fibonacci_iter(n):
+    if n < 0:
+        return -1, 1
+    if n == 0 or n == 1:
+        return n, 1
+    steps = 0
+    a = 0
+    b = 1
+    for i in range(2, n+1):
+        c = a + b
+        a = b
+        b = c
+        steps += 1
+    return c, steps+1
+
+def fibonacci_recur(n):
+    if n < 0:
+        return -1, 1
+    if n == 0 or n == 1:
+        return n, 1
+    fib1, steps1 = fibonacci_recur(n-1)
+    fib2, steps2 = fibonacci_recur(n-2)
+    return fib1 + fib2, steps1 + steps2 + 1
+
+if __name__ == '__main__':
+    n = int(input("Enter a number: "))
+    print("Iterative:", fibonacci_iter(n)[0])
+    print("Steps:", fibonacci_iter(n)[1])
+    print("Recursive:", fibonacci_recur(n)[0])
+    print("Steps:", fibonacci_recur(n)[1])
+
+DAA - 2 
+class Job:
+    def __init__(self, job_id, deadline, profit):
+        self.job_id = job_id
+        self.deadline = deadline
+        self.profit = profit
+
+def job_sequencing(jobs):
+    jobs.sort(key=lambda x: x.profit, reverse=True)
+    max_deadline = max(job.deadline for job in jobs)
+    time_slots = [-1] * max_deadline
+    total_profit = 0
+
+    for job in jobs:
+        for j in range(min(max_deadline - 1, job.deadline - 1), -1, -1):
+            if time_slots[j] == -1:
+                time_slots[j] = job.job_id
+                total_profit += job.profit
+                break
+
+    return [job_id for job_id in time_slots if job_id != -1], total_profit
+
+n = int(input("Enter the number of jobs: "))
+jobs = []
+for i in range(n):
+    job_id = input(f"Enter Job ID for Job {i + 1}: ")
+    deadline = int(input(f"Enter Deadline for Job {i + 1}: "))
+    profit = int(input(f"Enter Profit for Job {i + 1}: "))
+    jobs.append(Job(job_id, deadline, profit))
+
+optimal_sequence, max_profit = job_sequencing(jobs)
+print("Optimal job sequence:", optimal_sequence)
+print("Maximum profit:", max_profit)
+
+DAA - 3
+
+class Item:
+    def __init__(self, profit, weight):
+        self.profit = profit
+        self.weight = weight
+
+def fractionalKnapsack(w, arr):
+    arr.sort(key=lambda x: x.profit/x.weight, reverse=True)
+    finalValue = 0.0
+    for item in arr:
+        if w >= item.weight:
+            finalValue += item.profit
+            w -= item.weight
+        else:
+            finalValue += item.profit * (w/item.weight)
+            break
+    return finalValue
+
+if __name__ == "__main__":
+    n = int(input("Enter number of items-\n"))
+    arr = []
+    for i in range(n):
+        profit = int(input("Enter profit of item " + str(i + 1) + "-\n"))
+        weight = int(input("Enter weight of item " + str(i + 1) + "-\n"))
+        arr.append(Item(profit, weight))
+    w = int(input("Enter capacity of knapsack-\n"))
+    print("Maximum value in knapsack: ", fractionalKnapsack(w, arr))
+
+DAA - 4
+def knapsack_01(n, values, weights, W):
+    dp = [[0] * (W + 1) for _ in range(n + 1)]
+    for i in range(1, n + 1):
+        for w in range(W + 1):
+            if weights[i - 1] <= w:
+                dp[i][w] = max(dp[i - 1][w], dp[i - 1][w - weights[i - 1]] + values[i - 1])
+            else:
+                dp[i][w] = dp[i - 1][w]
+
+    selected_items = []
+    i, w = n, W
+    while i > 0 and w > 0:
+        if dp[i][w] != dp[i - 1][w]:
+            selected_items.append(i - 1)
+            w -= weights[i - 1]
+        i -= 1
+
+    return dp[n][W], selected_items
+
+n = int(input("Enter the number of items: "))
+values = []
+weights = []
+for i in range(n):
+    values.append(int(input(f"Enter value of item {i + 1}: ")))
+    weights.append(int(input(f"Enter weight of item {i + 1}: ")))
+
+W = int(input("Enter the capacity of the knapsack: "))
+max_value, selected_items = knapsack_01(n, values, weights, W)
+print("Maximum value:", max_value)
+print("Selected items:", selected_items)
+
+DAA - 5
+def binomial_coefficient(n, k):
+    dp = [[0 for _ in range(k + 1)] for _ in range(n + 1)]
+    for i in range(n + 1):
+        for j in range(min(i, k) + 1):
+            if j == 0 or j == i:
+                dp[i][j] = 1
+            else:
+                dp[i][j] = dp[i - 1][j - 1] + dp[i - 1][j]
+    return dp[n][k]
+
+n = int(input("Enter the value of n: "))
+k = int(input("Enter the value of k: "))
+print(f"Binomial Coefficient C({n}, {k}) is:", binomial_coefficient(n, k))
+
+DAA - 6
+def print_board(board):
+    for row in board:
+        print(" ".join(row))
+    print()
+
+def is_safe(board, row, col):
+    for i in range(col):
+        if board[row][i] == 'Q':
+            return False
+    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
+        if board[i][j] == 'Q':
+            return False
+    for i, j in zip(range(row, len(board)), range(col, -1, -1)):
+        if board[i][j] == 'Q':
+            return False
+    return True
+
+def solve_8_queens(board, col):
+    if col >= len(board):
+        return True
+    for i in range(len(board)):
+        if is_safe(board, i, col):
+            board[i][col] = 'Q'
+            if solve_8_queens(board, col + 1):
+                return True
+            board[i][col] = '.'
+    return False
+
+# Initialize the board with the first queen placed
+N = 8
+board = [['.' for _ in range(N)] for _ in range(N)]
+board[0][0] = 'Q'  # First Queen placed at (0, 0)
+
+if solve_8_queens(board, 1):
+    print("8-Queens Solution:")
+    print_board(board)
+else:
+    print("Solution does not exist.")
+
+
+
+
+ML - 1
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import datetime as dt
+
+df = pd.read_csv("uber.csv")
+df.head()
+
+df.drop(columns=['Unnamed: 0','key'],inplace=True)
+
+df.info()
+
+df.dropna(how='any',inplace=True)
+
+df.isnull().sum()
+
+for col in df.select_dtypes(exclude=['object']):
+    plt.figure()
+    sns.boxplot(data=df,x=col)
+
+df = df[
+    (df.pickup_latitude > -90) & (df.pickup_latitude < 90) &
+    (df.dropoff_latitude > -90) & (df.dropoff_latitude < 90) &
+    (df.pickup_longitude > -180) & (df.pickup_longitude < 180) &
+    (df.dropoff_longitude > -180) & (df.dropoff_longitude < 180) & 
+    (df.fare_amount > 0) & (df.passenger_count > 0)  & (df.passenger_count < 50)
+]
+
+from math import cos, asin, sqrt, pi
+import numpy as np
+def distance(lat_1,lon_1,lat_2,lon_2):
+#     lat1 = row.pickup_latitude
+#     lon1 = row.pickup_longitude
+#     lat2 = row.dropoff_latitude
+#     lon2 = row.dropoff_longitude
+    lon_1, lon_2, lat_1, lat_2 = map(np.radians, [lon_1, lon_2, lat_1, lat_2])  #Degrees to Radians
+    diff_lon = lon_2 - lon_1
+    diff_lat = lat_2 - lat_1
+    km = 2 * 6371 * np.arcsin(np.sqrt(np.sin(diff_lat/2.0)**2 +  np.cos(lat_1) * np.cos(lat_2) * np.sin(diff_lon/2.0)**2))
+    return km
+
+temp = distance(df['pickup_latitude'],df['pickup_longitude'],df['dropoff_latitude'],df['dropoff_longitude'])
+temp.head()
+
+df_new = df.copy()
+df_new['Distance'] = temp
+df = df_new
+df.head()
+
+sns.boxplot(data=df,x='Distance')
+
+df = df[(df['Distance'] < 200) & (df['Distance'] > 0)]
+
+df['pickup_datetime'] = pd.to_datetime(df['pickup_datetime'])
+
+df['week_day'] = df['pickup_datetime'].dt.day_name()
+df['Year'] = df['pickup_datetime'].dt.year
+df['Month'] = df['pickup_datetime'].dt.month
+df['Hour'] = df['pickup_datetime'].dt.hour
+
+df.drop(columns=['pickup_datetime','pickup_latitude','pickup_longitude','dropoff_latitude','dropoff_longitude'],inplace=True)
+
+df.head()
+
+temp = df.copy()
+def convert_week_day(day):
+    if day in ['Monday','Tuesday','Wednesday','Thursday']:
+        return 0 # Weekday
+    return 1 # Weekend
+def convert_hour(hour):
+    if 5 <= hour <= 12:
+        return 1
+    elif 12 < hour <= 17:
+        return 2
+    elif 17 < hour < 24:
+        return 3
+    return 0
+df['week_day'] = temp['week_day'].apply(convert_week_day)
+df['Hour'] = temp['Hour'].apply(convert_hour)
+df.head()
+
+df.corr()
+
+sns.scatterplot(y=df['fare_amount'],x=df['Distance'])
+
+from sklearn.preprocessing import StandardScaler
+x = df[['Distance']].values
+y = df['fare_amount'].values.reshape(-1,1)
+
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train,y_test = train_test_split(x,y,random_state=10)
+
+std_x = StandardScaler()
+x_train = std_x.fit_transform(x_train)
+
+x_test = std_x.transform(x_test)
+
+std_y = StandardScaler()
+y_train = std_y.fit_transform(y_train)
+
+y_test = std_y.transform(y_test)
+
+from sklearn.metrics import mean_squared_error,r2_score, mean_absolute_error
+def fit_predict(model):
+    model.fit(x_train,y_train.ravel())
+    y_pred = model.predict(x_test)
+    r_squared = r2_score(y_test,y_pred)
+    RMSE = mean_squared_error(y_test, y_pred,squared=False)
+    MAE = mean_absolute_error(y_test,y_pred)
+    print('R-squared: ', r_squared)
+    print('RMSE: ', RMSE)
+    print("MAE:  ",MAE)
+
+from sklearn.linear_model import LinearRegression
+
+fit_predict(LinearRegression())
+
+from sklearn.ensemble import RandomForestRegressor
+fit_predict(RandomForestRegressor())
+
+
+
+ML 2 
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+df = pd.read_csv('emails.csv')
+df.head()
+
+df.isnull().sum()
+
+df.dropna(how='any',inplace=True)
+
+x = df.iloc[:,1:-1].values
+y = df.iloc[:,-1].values
+
+from sklearn.model_selection import train_test_split
+x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.25,random_state=10)
+
+from sklearn.metrics import ConfusionMatrixDisplay,confusion_matrix,accuracy_score,precision_score,recall_score
+def report(classifier):
+    y_pred = classifier.predict(x_test)
+    cm = confusion_matrix(y_test,y_pred)
+    display = ConfusionMatrixDisplay(cm,display_labels=classifier.classes_)
+    display.plot()
+    print(f"Accuracy:  {accuracy_score(y_test,y_pred)}")
+    print(f"Precision Score:  {precision_score(y_test,y_pred)}")
+    print(f"Recall Score:  {recall_score(y_test,y_pred)}")
+
+from sklearn.neighbors import KNeighborsClassifier
+
+kNN = KNeighborsClassifier(n_neighbors=10)
+kNN.fit(x_train,y_train)
+
+report(kNN)
+
+from sklearn.svm import SVC
+svm = SVC(gamma='auto',random_state=10)
+svm.fit(x_train,y_train)
+
+report(svm)
+
+
+ML - 3 :
+
+import numpy as np
+import pandas as pd
+import sympy as sym
+import matplotlib as pyplot
+from matplotlib import pyplot
+
+def objective(x):
+    return (x+3)**2
+
+def derivative(x):
+    return 2*(x+3)
+
+def gradient(alpha,start,max_iter):
+    x_list=list()
+    x=start
+    x_list.append(x)
+    for i in range(max_iter):
+        gradi=derivative(x)
+        x=x-(alpha*gradi)
+        x_list.append(x)
+    return x_list
+x=sym.symbols('x')
+expr=(x+3)**2.0
+grad=sym.Derivative(expr,x)
+print("{}".format(grad.doit()))
+grad.doit().subs(x,2)
+
+alpha=0.1
+start=2
+max_iter=30
+x=sym.symbols('x')
+expr=(x+3)**2
+
+x_cor=np.linspace(-15,15,100)
+pyplot.plot(x_cor,objective(x_cor))
+pyplot.plot(2,objective(2),'ro')
+
+x=gradient(alpha,start,max_iter)
+x_cor=np.linspace(-5,5,100)
+pyplot.plot(x_cor,objective(x_cor))
+x_arr=np.array(x)
+pyplot.plot(x_arr,objective(x_arr),'.-',color='red')
+pyplot.show()
+
+ML - 4
+
+import numpy as np
+import pandas as pd
+
+data = pd.read_csv('./diabetes.csv')
+data.head()
+
+data.isnull().sum()
+
+for column in data.columns[1:-3]:
+    data[column].replace(0, np.NaN, inplace = True)
+    data[column].fillna(round(data[column].mean(skipna=True)), inplace = True)
+data.head(10)
+
+X = data.iloc[:, :8] 
+Y = data.iloc[:, 8:] 
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=0)
+
+from sklearn.neighbors import KNeighborsClassifier
+knn = KNeighborsClassifier()
+knn_fit = knn.fit(X_train, Y_train.values.ravel())
+knn_pred = knn_fit.predict(X_test)
+
+from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, accuracy_score
+print("Confusion Matrix")
+print(confusion_matrix(Y_test, knn_pred))
+print("Accuracy Score:", accuracy_score(Y_test, knn_pred))
+print("Reacal Score:", recall_score(Y_test, knn_pred))
+print("F1 Score:", f1_score(Y_test, knn_pred))
+print("Precision Score:",precision_score(Y_test, knn_pred))
+print("Error Rate:",(1-accuracy_score(Y_test, knn_pred)))
+
+ML - 5 :
+
+import pandas as pd
+import numpy as np
+
+df = pd.read_csv('sales_data_sample.csv', encoding='unicode_escape')
+df.head
+
+df.info
+
+to_drop = ['ADDRESSLINE1', 'ADDRESSLINE2', 'STATE', 'POSTALCODE', 'PHONE']
+df = df.drop(to_drop, axis=1)
+
+df.isnull().sum()
+
+df.dtypes
+
+df['ORDERDATE'] = pd.to_datetime(df['ORDERDATE'])
+
+import datetime as dt
+snapshot_date = df['ORDERDATE'].max() + dt.timedelta(days = 1)
+df_RFM = df.groupby(['CUSTOMERNAME']).agg({
+    'ORDERDATE' : lambda x : (snapshot_date - x.max()).days,
+    'ORDERNUMBER' : 'count',
+    'SALES' : 'sum'
+})
+
+#Rename the columns
+df_RFM.rename(columns = {
+    'ORDERDATE' : 'Recency',
+    'ORDERNUMBER' : 'Frequency',
+    'SALES' : 'MonetaryValue'
+}, inplace=True)
+
+df_RFM.head()
+
+df_RFM['M'] = pd.qcut(df_RFM['MonetaryValue'], q = 4, labels = range(1,5))
+df_RFM['R'] = pd.qcut(df_RFM['Recency'], q = 4, labels = list(range(4,0,-1)))
+df_RFM['F'] = pd.qcut(df_RFM['Frequency'], q = 4, labels = range(1,5))
+
+df_RFM.head()
+
+df_RFM['RFM_Score'] = df_RFM[['R', 'M', 'F']].sum(axis=1)
+df_RFM.head()
+
+def rfm_level(df):
+    if bool(df['RFM_Score'] >= 10):
+        return 'High Value Customer'
+        elif bool(df['RFM_Score'] < 10) and bool(df['RFM_Score'] >= 6):
+        return 'Mid Value Customer'
+    else:
+        return 'Low Value Customer'
+df_RFM['RFM_Level'] = df_RFM.apply(rfm_level, axis = 1)
+df_RFM.head()
+
+data = df_RFM[['Recency', 'Frequency', 'MonetaryValue']]
+data.head()
+
+data_log = np.log(data)
+data_log.head()
+
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(data_log)
+data_normalized = scaler.transform(data_log)
+data_normalized = pd.DataFrame(data_normalized, index = data_log.index, columns=data_log.columns)
+data_normalized.describe().round(2)
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.cluster import KMeans
+sse = {}
+for k in range(1, 21):
+    kmeans = KMeans(n_clusters = k, random_state = 1)
+    kmeans.fit(data_normalized)
+    sse[k] = kmeans.inertia_
+
+plt.figure(figsize=(10,6))
+plt.title('The Elbow Method')
+plt.xlabel('K')
+plt.ylabel('SSE')
+plt.style.use('ggplot')
+sns.pointplot(x=list(sse.keys()), y = list(sse.values()))
+plt.text(4.5, 60, "Largest Angle", bbox = dict(facecolor = 'lightgreen', alpha = 0.5))
+plt.show()
+
+kmeans = KMeans(n_clusters=5, random_state=1)
+kmeans.fit(data_normalized)
+cluster_labels = kmeans.labels_
+data_rfm = data.assign(Cluster = cluster_labels)
+data_rfm.head()
+
+
+BT - 3 :
+
+// SPDX-License-Identifier: unlicensed
+
+pragma solidity ^0.8.0;
+
+contract Bank{
+
+    mapping(address =>uint256) balances;
+
+    function depositMoney(uint256 amount) public {
+        require(amount >0, "Amount must be greater than 0" );
+        balances[msg.sender] = balances[msg.sender] + amount;
+    }
+
+    function withdrawMoney(uint256 amount) public {
+        require(amount <= balances[msg.sender], "Insufficiant balance" );
+        balances[msg.sender] = balances[msg.sender] - amount;
+    }
+
+    function showBalance() public view returns(uint256){
+        return balances[msg.sender];
+    }
+
+}
+
+BT - 4 :
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Student_management {
+    struct Student {
+        int stud_id;
+        string name;
+        string department;
+    }
+
+    Student[] public students;
+
+    function addStudent(int stud_id, string memory name, string memory department) public {
+        students.push(Student(stud_id, name, department));
+    }
+
+    function getStudent(int stud_id) public view returns (string memory, string memory) {
+        for (uint i = 0; i < students.length; i++) {
+            if (students[i].stud_id == stud_id) 
+                return (students[i].name, students[i].department);
+        }
+        return ("Not Found", "Not Found");
+    }
+
+   
+}
